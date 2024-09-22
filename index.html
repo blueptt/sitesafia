@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - site internet $</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anniversaire de ma pepette</title>
+    <style>
+        body {
+            background-color: #ff69b4; /* Fond rose foncé */
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center; /* Centre le texte */
+        }
+        h1 {
+            font-size: 3em; /* Titre plus grand */
+            margin-bottom: 20px;
+        }
+        h3 {
+            margin: 20px 0;
+        }
+        button {
+            font-size: 2.5em; /* Boutons beaucoup plus gros */
+            padding: 20px 40px; /* Plus de padding */
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 10px; /* Coins arrondis */
+            border: none; /* Pas de bordure */
+        }
+        #game-area {
+            margin: 20px auto; /* Centre la zone de jeu */
+            display: inline-block; /* Permet le centrage */
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 10px;
+        }
+        #board div {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            border: 1px solid #fff;
+            cursor: pointer;
+        }
+        .button-container {
+            margin-top: 20px; /* Espace au-dessus des boutons */
+        }
+    </style>
+</head>
+<body>
+    <h1>Bonne anniversaire ma pepette</h1>
+    <h3>Mini jeux 💖</h3>
+    <div class="button-container">
+        <button id="pendu-btn">Pendu</button>
+        <button id="tictactoe-btn">Tic Tac Toe</button>
+        <button id="qui-est-ce-btn">Qui est-ce ?</button>
+    </div>
+    <div id="game-area"></div>
+
+    <script>
+        let currentGame = null;
+
+        document.getElementById('pendu-btn').onclick = startPendu;
+        document.getElementById('tictactoe-btn').onclick = startTicTacToe;
+        document.getElementById('qui-est-ce-btn').onclick = startQuiEstCe;
+
+        function resetGame() {
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = '';
+        }
+
+        function startPendu() {
+            resetGame();
+            currentGame = 'pendu';
+            const words = ["pidaraz", "bandeuse", "grozny", "jul", "cinema", "fesses", "critere", "noir", "caca", "enceinte", "movsar", "célibataire", "pied", "dubai", "magomed", "kant", "michto", "raz", "noxchi", "borz", "snapchat", "kerchack", "chier", "haram", "alcool", "adam", "toilette", "parano", "soutchka", "marseille", "bbl", "djezair", "jalouse"];
+            const word = words[Math.floor(Math.random() * words.length)];
+            let chances = 10;
+            let guessedLetters = [];
+            const wordDisplay = Array(word.length).fill('_');
+
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = 
+                `<h3>${wordDisplay.join(' ')}</h3>
+                <input type="text" id="letter-input" maxlength="1">
+                <button id="guess-btn">Deviner</button>
+                <div class="game-message" id="pendu-message">Chances restantes : ${chances}</div>`;
+
+            document.getElementById('guess-btn').onclick = function () {
+                const letter = document.getElementById('letter-input').value.toLowerCase();
+                if (!guessedLetters.includes(letter) && letter) {
+                    guessedLetters.push(letter);
+                    if (word.includes(letter)) {
+                        for (let i = 0; i < word.length; i++) {
+                            if (word[i] === letter) {
+                                wordDisplay[i] = letter;
+                            }
+                        }
+                    } else {
+                        chances--;
+                    }
+                }
+                document.getElementById('pendu-message').innerText = `Chances restantes : ${chances}`;
+                document.querySelector('h3').innerText = wordDisplay.join(' ');
+
+                if (wordDisplay.join('') === word) {
+                    alert("T'as trouvé !!!! Bravo ma pepette !");
+                    resetGame();
+                } else if (chances <= 0) {
+                    alert(`pffff Perdu ! t vrm trop nulle bouuuh, Le mot c'était "${word}".`);
+                    resetGame();
+                }
+            };
+        }
+
+        function startTicTacToe() {
+            resetGame();
+            currentGame = 'tictactoe';
+            const board = ['', '', '', '', '', '', '', '', ''];
+            let playerTurn = true; // true = joueur, false = IA
+
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = 
+                `<h3>Tic Tac Toe</h3>
+                <div id="board"></div>
+                <button id="restart-btn">Recommencer</button>`;
+
+            const boardDiv = document.getElementById('board');
+            board.forEach((_, index) => {
+                const cell = document.createElement('div');
+                cell.dataset.index = index;
+                cell.onclick = () => playerMove(index);
+                boardDiv.appendChild(cell);
+            });
+
+            document.getElementById('restart-btn').onclick = resetBoard;
+
+            function playerMove(index) {
+                if (board[index] === '' && playerTurn) {
+                    board[index] = '❤️'; // Coeur pour le joueur
+                    updateBoard();
+                    if (checkWin('❤️')) {
+                        alert("Trop forte ma pepette !");
+                        resetBoard();
+                        return;
+                    }
+                    playerTurn = false;
+                    setTimeout(() => aiMove(), 1000); // IA joue après 1 seconde
+                }
+            }
+
+            function aiMove() {
+                const emptyIndices = board.map((v, i) => (v === '' ? i : null)).filter(v => v !== null);
+                
+                // Stratégie IA
+                const winningMoves = emptyIndices.filter(index => {
+                    board[index] = '⭐'; // Étoile pour l'IA
+                    const win = checkWin('⭐');
+                    board[index] = ''; // Réinitialise
+                    return win;
+                });
+
+                if (winningMoves.length > 0) {
+                    board[winningMoves[0]] = '⭐'; // Prend un coup gagnant
+                } else if (emptyIndices.length > 0) {
+                    const blockMoves = emptyIndices.filter(index => {
+                        board[index] = '❤️'; // Coeur pour le joueur
+                        const win = checkWin('❤️');
+                        board[index] = ''; // Réinitialise
+                        return win;
+                    });
+                    if (blockMoves.length > 0) {
+                        board[blockMoves[0]] = '⭐'; // Bloque un coup gagnant
+                    } else {
+                        const index = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+                        board[index] = '⭐'; // Étoile pour l'IA
+                    }
+                }
+
+                updateBoard();
+                if (checkWin('⭐')) {
+                    alert("Bouuuuuh t'as pas honte de perdre ?");
+                    resetBoard();
+                }
+                playerTurn = true; // Redonne le tour au joueur
+            }
+
+            function updateBoard() {
+                const cells = document.querySelectorAll('#board div');
+                cells.forEach((cell, index) => {
+                    cell.innerText = board[index];
+                });
+            }
+
+            function checkWin(symbol) {
+                const winningCombinations = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+                return winningCombinations.some(combination => {
+                    return combination.every(index => board[index] === symbol);
+                });
+            }
+
+            function resetBoard() {
+                board.fill('');
+                playerTurn = true;
+                updateBoard();
+            }
+        }
+
+        function startQuiEstCe() {
+            resetGame();
+            currentGame = 'qui-est-ce';
+            const characters = [
+                { name: 'Amnat', clues: ["Cette personne sait les choses mieux que toi", "Cette personne est absolument partout", "Bandeuse et avocate de tous les hommes", "Arrêt de bus"] },
+                { name: 'Sayfullah', clues: ["Gay", "Il dance trop bien", "Est en couple avec Phoenix", "Borz"] },
+                { name: 'Phoenix', clues: ["Gay", "Cette personne peut te retourner le cerveau à tel point que tu te demandes si c'est pas ta mère qui a balancé des rumeurs sur toi et pas elle", "Cette personne était censée venir toute nue à la rentrée", "Cette personne est fou malade complètement crazy vrm chtarbé", "Ptitsa"] },
+                { name: 'Maryam', clues: ["Rousse", "Vraie borz", "Strasbourg", "Cousine"] },
+                { name: 'Ali K1ant', clues: ["Lavabo", "Ingouche", "Piercing cœur", "Trop beau ptn", "Pote de Cmago", "M’a affiché et à cause de lui je suis devenu la bandeuse de tche"] },
+                { name: 'Lisa', clues: ["Bouffone", "Hypocrite", "Amoureuse d'un gay", "Jalouse", "On aime toujours les mêmes mecs c'est trop"] },
+                { name: 'Delcy', clues: ["Dans le top 5 des meilleurs de la classe mais pas première lol", "Toutou de Amnat", "Défend un gay qui l'aime pas", "M'a invité à danser", "Noir"] },
+                { name: 'Safia', clues: ["Amoureuse d'un mec mais est dans le déni", "Est amie avec une pute alors qu'elle est muslim mais est toujours dans le déni", "Fais que réfléchir au lieu de regarder un film tranquillement", "Ne veut jamais venir au ciné avec moi", "La même pose sur toutes les photos", "Elle a beaucoup trop de critères, y'a donc beaucoup de chance qu'elle finisse seule", "Son frère me fait peur (pas qu'à moi en fait)"] },
+                { name: 'Jade', clues: ["Toutou", "Nous a toutes les deux supprimées??", "Veut pas nous envoyer les devoirs qu'elle a fait wtf???", "Piercing au nez", "On était proches", "Pierre", "Hérisson, Kenji Girac"] },
+                { name: 'Fasula', clues: ["Blanchit de l'argent", "Enlève ses chaussures en cours vrm a l'aise", "Refuse de travailler quand je lui demande???", "Sayfullah et Phoenix le kiffent, ils ont une relation toxique tous les trois", "Polonais", "Prof gentil, pas bon, mais gentil", "Tu es plus venu à ses cours que Nassim"] },
+                { name: 'Safwane', clues: ["Dans le déni", "Il m'a supprimée le batard", "Toi aussi tu es dans le déni, parce que tu crois qu'on va finir ensemble", "Son cousin est vraiment gay"] },
+                { name: 'Abdelkader', clues: ["A 40 téléphones et 89 comptes Snapchat", "Est clairement dans des bails bizarres", "Il a la dalle", "Il me doit une play", "Me parlait que quand je mettais des décolletés", "S'est fait planter plusieurs fois??"] },
+                { name: 'Sayan', clues: ["Notre petite princesse", "Le seul qui m'a pas abandonnée", "Est jamais là", "Gros cul"] },
+                { name: 'Blue', clues: ["Tchoin", "Ça veut toujours l'afficher", "On se demande tous Comment ta famille n'a pas capté la supercherie", "Beaucoup de piercings", "Fait que pleurer", "C'est bizarre de parler de moi à la troisième personne"] },
+                { name: 'Prof de SES', clues: ["Est DJ?", "Je suis plus venu à ses cours qu'au mien", "Gros cul"] },
+                { name: 'Jason', clues: ["Gay", "Vraiment gay", "Trop gay", "Ment sur ses relations dans des cabanes", "Je n'ai jamais vu une haine aussi forte que celle que tu lui portes"] },
+                { name: 'Movsar', clues: ["Petit", "Requin", "Gros nez (à ne pas lire à l'envers)", "Très gentil", "Tellement je lui faisais de la peine Il a pris mon snap pour prendre de mes nouvelles", "Ne finis pas avec lui stp ton fils sera tout petit"] },
+                { name: 'Elias', clues: ["Fils de pute mais je l'aime quand même", "A couché avec toute la Méditerranée", "Sûrement marié au bled", "Je vais me marier avec lui", "M'a peut-être mise enceinte"] },
+                { name: 'Elouan', clues: ["Si tu trouves avec le 2e indice, t'es vraiment forte", "Le premier mec avec qui je suis sortie", "Son prénom commence par un E", "Son prénom finit par un N", "Pas d'autres idées d'indices, débrouille-toi lol"] },
+                { name: 'Mame', clues: ["Se croit aux States?", "Noir", "Descend son jogging jusqu'au sol", "On a tous vu ses fesses", "Il s'est pris un coup de pression par Adam"] }
+            ];
+
+            let currentCharacter = null;
+            let currentClueIndex = 0;
+
+            function newCharacter() {
+                currentCharacter = characters[Math.floor(Math.random() * characters.length)];
+                currentClueIndex = 0;
+                document.getElementById('game-area').innerHTML = 
+                    `<h3>Qui est-ce ?</h3>
+                    <div id="clue-area">${currentCharacter.clues[currentClueIndex]}</div>
+                    <input type="text" id="guess-input" placeholder="Devinez qui c'est">
+                    <button id="guess-button">Deviner</button>
+                    <button id="new-clue-button">Nouvel indice</button>
+                    <div id="response-message"></div>`;
+
+                document.getElementById('guess-button').onclick = checkGuess;
+                document.getElementById('new-clue-button').onclick = showNextClue;
+            }
+
+            function checkGuess() {
+                const guess = document.getElementById('guess-input').value;
+                if (guess.toLowerCase() === currentCharacter.name.toLowerCase()) {
+                    alert("OUIII !!!Bravooo trop forte ma pepette t'as trouvé !");
+                    newCharacter();
+                } else {
+                    if (currentClueIndex === 0) {
+                        document.getElementById('response-message').innerText = 'Faux NULLLLLEE recommence t trop nulle.';
+                    } else {
+                        document.getElementById('response-message').innerText = 'Faux trop trop nulle pffff !';
+                    }
+                }
+            }
+
+            function showNextClue() {
+                if (currentClueIndex < currentCharacter.clues.length - 1) {
+                    currentClueIndex++;
+                    document.getElementById('clue-area').innerText = currentCharacter.clues[currentClueIndex];
+                } else {
+                    alert("C'est le dernier indice !");
+                }
+            }
+
+            newCharacter();
+        }
+    </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
